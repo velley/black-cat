@@ -24,13 +24,6 @@ Vue.use(lazyLoad,{
 
 
 
-
-
-
-
-
-
-
 /* eslint-disable no-new */
 new Vue({
   el: '#app',

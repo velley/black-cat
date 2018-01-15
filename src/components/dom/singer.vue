@@ -31,6 +31,7 @@
 </template>
 
 <script>
+import {playMixin} from 'common/js/playMixin'
 import scroll from 'components/util/scroll'
 import {getSingers} from 'api/singer.js'
 import {Singer} from 'common/js/class.js'
@@ -42,6 +43,7 @@ const HotName = '热门'
 const indexHeight = 18
 const TITLEHEIGHT = 20
 export default {    
+    mixins:[playMixin],
     data() {
         return{
             singers:[],
@@ -86,7 +88,7 @@ export default {
                 if(!h2 || (-newY > h1 && -newY < h2)){
                     this.onIndex = i;     
                     this.diff = h2 + newY;
-                    this.$refs.anItem[i].addOnlyClass('light');               
+                    this.$refs.anItem[i] && this.$refs.anItem[i].addOnlyClass('light');               
                     return;
                 }else if(i===0 && -newY < h1){
                     return;
@@ -105,6 +107,11 @@ export default {
         }
     },
     methods: {
+        handleList(playlist) {
+            if(playlist.length>0){
+                this.$refs.scrollWrap.$el.style.bottom = '50px'
+            }
+        },
         scroll(pos){
             this.scrollY = pos.y
             // console.log(pos.y);
@@ -119,7 +126,6 @@ export default {
                 height += item.clientHeight;
                 this.listHeight.push(height);
             }
-
         },
         _getSingers() {            
             getSingers().then((res)=>{                

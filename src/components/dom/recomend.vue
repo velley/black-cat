@@ -8,14 +8,14 @@
     </div>
   </slider>
 
-  <div class="disc-list-box">
+  <div class="disc-list-box" ref="discBox">
     <h3>热门歌单</h3>
     <div class="loading" v-show="!discList.length">        
     </div>
-    <scroll :data="discList" v-if="discList.length" class="scroll-box">
+    <scroll :data="discList" v-if="discList.length" class="scroll-box" >
       
       <ul class="disc-list">
-        <li :key=key v-for="(item,key) in discList" class="disc-item" >
+        <li :key=key v-for="(item,key) in discList" class="disc-item" @click="selectDisc(item)">
           <div class="disc-img">
             <img v-lazy="item.imgurl" alt="" :ref="key">
           </div>        
@@ -24,19 +24,21 @@
             <p>{{item.dissname}}</p>
           </div>        
         </li>
-      </ul>
-      
-    </scroll>
-    
+      </ul>      
+    </scroll>    
   </div> 
+  <router-view></router-view>
 </div>
 </template>
 
 <script>
+import {playMixin} from 'common/js/playMixin'
 import {getRecomend,getDiscList} from 'api/recomend.js'
+import {mapMutations} from 'vuex'
 import slider from 'components/util/slider'
 import scroll from 'components/util/scroll'
 export default {  
+  mixins: [playMixin],
   data () {
     return {
       sliders:[],
@@ -45,7 +47,7 @@ export default {
     }
   },
   components:{
-    slider,
+    slider,    
     scroll
   },
   created(){
@@ -70,7 +72,22 @@ export default {
           console.log(this.discList);
         }
       })
-    }
+    },
+    selectDisc(item){
+      console.log(item)
+      this.$router.push({
+        path: `/recomend/${item.dissid}`
+      })
+      this.setDisc(item)
+    },
+    handleList(playlist) {
+      if(playlist.length>0){
+        this.$refs.discBox.style.bottom = '65px'
+      }
+    },
+    ...mapMutations({
+      setDisc : 'SET_DISC'
+    })
   }
 }
 </script>

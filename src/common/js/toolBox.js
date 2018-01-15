@@ -66,6 +66,9 @@ ToolBox.prototype = {
         };
         // ..给某个子元素添加指定CLASS名同时删除所有兄弟元素的该class名
         Element.prototype.addOnlyClass = function(cls){
+            if(!this){
+                return
+            }
             if(!this.hasClass(cls)){
                 var parent = this.parentNode;
                 var brothers = parent.childNodes;

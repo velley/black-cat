@@ -1,9 +1,7 @@
-<template>
-    <transition name="detail">    
-        <music-list :songs="songs" :title="title" :bg-img="bgImg">
+<template>        
+    <music-list :songs="songs" :title="title" :bg-img="bgImg">
 
-        </music-list>    
-    </transition>
+    </music-list>
 </template>
 
 <script>
@@ -62,10 +60,7 @@
 </script>
 
 <style lang="stylus">
-    .detail-enter-active, .detail-leave-active
-        transition: all 0.3s
-    .detail-enter, .detail-leave-to
-        transform: translate3d(100%, 0, 0)
+    
     
 </style>
 

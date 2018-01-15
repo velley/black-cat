@@ -4,14 +4,14 @@
         <transition name="normal">
             <div class="normal-player" v-show="fullScreen" @click="proxyEvent">                
                 <i class="fa fa-2x fa-arrow-left" @click="back"></i>  
-                <div class="song-data">
+                <div class="song-data" v-show="!showLyric">
                     <h2 class="name" v-html="currentSong.name"></h2>
                     <p class="singer" v-html="currentSong.singer"></p>
                 </div>                
-                <div class="background" ref="background">
+                <div class="background" ref="background" v-show="!showLyric" @click="changeShowLyric">
                     <img :src="currentSong.image" :class="CDplay" class="play" alt="">
                 </div> 
-                <div class="add-buttons">
+                <div class="add-buttons" v-show="!showLyric">
                     <i class="love fa fa-heart"></i>
                     <i class="add fa fa-plus"></i>
                     <i class="song-menu fa fa-ellipsis-v"></i>
@@ -29,9 +29,7 @@
                     <i class="start-play fa fa-2x fa-pause" @click="togglePlay" ref="pButton"></i>
                     <i class="next-song fa fa-2x fa-fast-forward" @click="playEnd"></i>
                     <i class="love fa fa-2x fa-outdent" @click.stop="changeShowList"></i>
-                </div>      
-                <!--播放列表-  -->
-                <play-list v-if="showList" :songs="playlist" :playingIndex="currentIndex" ref="playList" @playNewSong="playNewSong"></play-list>
+                </div>
             </div>
         </transition>
 
@@ -53,12 +51,30 @@
             </div> 
         </div>
         <!-- 多媒体地址 -->
-        <audio :src="currentSong.url" @canplay="ready" @timeupdate="timeupdate" @ended="playEnd" ref="audio"></audio>
+        <audio :src="currentSong.url" @canplay="ready" @timeupdate="timeupdate" @ended="playEnd" ref="audio"></audio>        
+        <!-- 全屏歌词 -->
+        <scroll ref="scrollLyric" 
+                class="full-lyric" 
+                v-if="renderLyric" 
+                v-show="fullScreen && showLyric" 
+                :data="currentLyric && currentLyric.lines"                 
+        >
+            <div class="s-full-lyric" @click="changeShowLyric">
+                <p ref="lyricList" :key="key" v-for="(item,key) in currentLyric.lines" :class="{'light-lyric':key===currentLineNum}">
+                    {{item.txt}}
+                </p>
+            </div>
+        </scroll>
+        <!-- 单行歌词 -->
+        <div class="lyric" v-html="currentLineText" v-show="!showLyric && fullScreen"></div>
+        <!--播放列表-  -->
+        <play-list v-if="showList" :songs="playlist" :playingIndex="currentIndex" ref="playList" @playNewSong="playNewSong"></play-list>        
     </div>
 </template>
 
 <script>
-import {mapGetters,mapMutations,mapActions} from 'vuex'
+import {mapGetters,mapMutations} from 'vuex'
+import scroll from 'components/util/scroll'
 import progressBar from './progress-bar'
 import playList from './playlist'
 import progressCircle from './progress-circle'
@@ -70,13 +86,19 @@ export default {
             songReady:false,
             currentTime:0,
             showList:false,
-            randomIndex:0
+            randomIndex:0,
+            currentLyric:null,
+            currentLineNum:0,
+            currentLineText:'',
+            renderLyric:false,
+            showLyric:false
         }
     },
     components:{
         progressBar,
         progressCircle,
-        playList
+        playList,
+        scroll        
     },
     computed: {
         ...mapGetters([
@@ -114,11 +136,15 @@ export default {
         },
         proxyEvent(e){   
             if(this.showList){
-                this.changeShowList()
+                this.changeShowList()                
             }
         },
         back() {
-            this.setFullScreen(false)
+            this.setFullScreen(false) 
+            if(this.showLyric){
+                this.changeShowLyric()
+            }   
+                       
         },
         openFull() {
             this.setFullScreen(true)
@@ -127,7 +153,10 @@ export default {
             if(!this.songReady){
                 return
             }
-            this.setPlaying(!this.playing)                        
+            this.setPlaying(!this.playing)  
+            if(this.currentLyric){
+                this.currentLyric.togglePlay()
+            }                      
         },
         ready() {
             this.songReady = true
@@ -195,7 +224,11 @@ export default {
             return num
         },
         pBarTouch(newPercent) { 
-            this.$refs.audio.currentTime = Math.floor(this.duration*newPercent)
+            const currentTime = Math.floor(this.duration*newPercent)
+            this.$refs.audio.currentTime = currentTime
+            if(this.currentLyric){
+                this.currentLyric.seek(currentTime*1000)
+            }
             if(!this.playing){
                 this.togglePlay()
             }
@@ -208,9 +241,13 @@ export default {
             }else {
                 this.$refs.audio.currentTime = 0
                 this.$refs.audio.play()
+                if(this.currentLyric){
+                    this.currentLyric.seek(0)
+                }
                 if(!this.playing){
                     this.togglePlay()
                 }
+                
             }            
         },        
         playNewSong(index) {
@@ -238,10 +275,24 @@ export default {
         },
         getLyric() {
             this.currentSong._getLyric().then((lyric)=>{
-                this.currentLyric = new Lyric(lyric)
+                this.currentLyric = new Lyric(lyric,this.handleLyric)
+                if(this.playing){
+                    this.currentLyric.play()
+                }
                 console.log('当前歌词为')
                 console.log(this.currentLyric)
             })
+        },
+        handleLyric({lineNum,txt}) {
+            this.currentLineNum = lineNum
+            this.currentLineText = txt
+            if(lineNum > 5){
+                this.$refs.scrollLyric.scrollToElement(this.$refs.lyricList[lineNum-5],1000)
+            }
+            
+        },
+        changeShowLyric() {
+            this.showLyric = !this.showLyric            
         },
         ...mapMutations({
             setFullScreen: 'SET_FULL_SCREEN',
@@ -249,20 +300,20 @@ export default {
             setCurrentIndex: 'SET_CURRENT_INDEX',
             setPlayMode: 'SET_PLAY_MODE',
             setPlayList: 'SET_PLAYLIST',
-        }),
-        ...mapActions([
-            'selectPlay'
-        ])
+        }),        
         
     },
     watch: {
         currentSong(newSong) {
             console.log(this.currentSong.url)
-            this.$nextTick(()=>{
+            if(this.currentLyric){
+                this.currentLyric.stop()
+            }
+            setTimeout(()=>{
                 this.getLyric()
                 this.$refs.audio.play()
-            })
-            
+                this.renderLyric = true
+            },500)
         },
         playing(newplay) {
             const audio = this.$refs.audio
@@ -290,6 +341,9 @@ export default {
 
 <style lang="stylus">
     #play-wrap
+        overflow hidden
+        max-width 100%
+        max-height 100%
         z-index 1000
         .normal-enter-active, .normal-leave-active
             transition all 0.5s
@@ -331,7 +385,7 @@ export default {
                 height 300px
                 border-radius 50%
                 position absolute
-                top 120px
+                top 100px
                 left 50%
                 transform translate(-50%,0)
                 overflow hidden
@@ -345,14 +399,15 @@ export default {
                 width 100%
                 text-align center
                 transform scale(1.5)
-                position absolute
-                top 460px
+                position fixed
+                top 430px
                 i 
                     margin 10px                     
             .playbutton-box
+                // border 1px solid yellow
                 height 50px
                 width 100%
-                position absolute
+                position fixed
                 bottom 10px                
                 text-align center
                 i
@@ -399,6 +454,24 @@ export default {
                 right 60px
                 i
                     margin 0 6px
+        .lyric
+            width 100%
+            text-align center
+            color #ccc
+            position fixed
+            bottom 140px
+        .full-lyric
+            overflow hidden
+            width 100%
+            position fixed            
+            top 50px
+            bottom 150px            
+            .s-full-lyric
+                p
+                    padding 10px 20px
+                    margin 5px 0                    
+                    &.light-lyric
+                        color #ccc 
     @keyframes rotate
         0%
             transform: rotate(0)

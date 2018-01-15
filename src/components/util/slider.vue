@@ -37,9 +37,9 @@ export default {
           this.setGrouWidth();
           this.initDots();
           this.sliderRun();
-          if(this.autoPlay){
-              this.autoWork();
-          }
+        //   if(this.autoPlay){
+        //       this.autoWork();
+        //   }
       },20)
       window.onresize = ()=>{
           clearTimeout(this.resTimer);
@@ -84,12 +84,13 @@ export default {
           this.dots = new Array(this.children.length);
       },
       sliderRun(){
+          let me = this
           this.slider = new BSC(this.$refs.slider,{
               scrollX:true,
               scrollY:false,
               momentum: false,
               snap: {
-                loop: this.loop,
+                loop: me.loop,
                 threshold: 0.3,
                 speed: 400
               }
@@ -98,9 +99,9 @@ export default {
       },
       onscrollEnd(){          
             let pageIndex = this.slider.getCurrentPage().pageX;
-            if(this.loop){
-                pageIndex -= 1;
-            }
+            // if(this.loop){
+            //     pageIndex -= 1;
+            // }
             this.currentIndex = pageIndex; 
             if(this.loop){
                 this.autoWork(); 
@@ -109,6 +110,8 @@ export default {
       },      
       autoWork(){
           let pageIndex = this.slider.getCurrentPage().pageX + 1;
+          console.log(pageIndex)
+          
           clearTimeout(this.timer);
           this.timer = setTimeout(
               ()=>{                  
