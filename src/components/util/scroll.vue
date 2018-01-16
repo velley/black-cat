@@ -23,6 +23,11 @@ export default {
         listenScroll:{
             type: Boolean,
             default: false
+        },
+        // 下拉刷新
+        pullup:{
+            type:Boolean,
+            default:false
         }
     },
     methods: {
@@ -40,6 +45,16 @@ export default {
                 let _this = this;
                 this.scroll.on('scroll',(pos)=>{
                     _this.$emit('scroll',pos)
+                })
+            }
+            if(this.pullup){
+                let me = this
+                this.scroll.on('scrollEnd',()=>{
+                    if(this.scroll.y<=(this.scroll.maxScrollY+50)){
+                        console.log('max scroll is ' +this.scroll.maxScrollY)
+                        // alert('s end')
+                        me.$emit('scrollToEnd')
+                    }
                 })
             }
         },
@@ -68,13 +83,13 @@ export default {
         
     },
     watch: {
-        // data(newdata){
-        //     setTimeout(() => {
-        //         console.log('数据更改')
-        //         console.log(newdata)
-        //         this.refresh()
-        //     }, 25);
-        // }
+        data(newdata){
+            setTimeout(() => {
+                console.log('数据更改')
+                // console.log(newdata)
+                this.refresh()
+            }, 25);
+        }
     }
 }
 
