@@ -1,23 +1,24 @@
 <template>
-<scroll class="scroll-result" :data="result" v-if="result.length" :pullup="pullup" @scrollToEnd="searchMore">
-    <ul class="suggest">
-        <li :Key="key" v-for="(item,key) in result" class="music-results">
-            <i :class="getCls(item)"></i>
-            <p class="text" v-html="getName(item)"></p>
-            <!-- {{item}} -->
-        </li>
-        <div class="loading" v-show="hasMoreRes"></div>
-    </ul>
-    
-</scroll>
+    <scroll  class="scroll-result"  :data="result" v-if="result.length" :pullup="pullup" @scrollToEnd="searchMore" >
+        <ul class="suggest" ref="scrollWrap">
+            <li :Key="key" v-for="(item,key) in result" class="music-results" @click="selectItem(item)">
+                <i :class="getCls(item)"></i>
+                <p class="text" v-html="getName(item)"></p>
+                <!-- {{item}} -->
+            </li>
+            <div class="loading" v-show="hasMoreRes"></div>
+        </ul>    
+    </scroll>
 
 </template>
 
 <script>
+import {mapMutations} from 'vuex'
 import {searchResult} from 'api/search'
-import {filterSinger} from 'common/js/class'
+import {Singer,filterSinger} from 'common/js/class'
 import scroll from 'components/util/scroll'
 export default {
+    
     props:{
         query:{
             type:String,
@@ -53,7 +54,8 @@ export default {
             this.startSearch()
         }
     },
-    methods: {
+    methods: {        
+        
         startSearch() {  
             this.hasMoreRes = true                            
             searchResult(this.query,this.page,this.showSinger,this.perpage).then((res)=>{
@@ -105,20 +107,37 @@ export default {
             }else{
                 return `${item.songname}-${filterSinger(item.singer)}`
             }
-        }
+        },
+        selectItem(item){
+            if(item.type === 'singer'){
+                const singer = new Singer({
+                    id:item.singermid,
+                    name:item.singername
+                })
+                this.$router.push({
+                    path: `/search/${singer.id}`                    
+                })
+                this.setSinger(singer)
+            }
+        },
+        ...mapMutations({
+            setSinger: 'SET_SINGER'
+        }) 
     }
 }
 </script>
 
 <style lang="stylus">
 .scroll-result
-    position fixed
+    // position fixed
+    // overflow hidden
+    // top 195px
+    // bottom 0
+    // left 0
+    // right 0
+    // padding-bottom 10px
+    height 100%
     overflow hidden
-    top 195px
-    bottom 0
-    left 0
-    right 0
-    padding-bottom 10px
     background #333        
     .suggest    
         text-align left
