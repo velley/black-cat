@@ -42,7 +42,7 @@ export default {
             if(playlist.length>0){
                 console.log('iss')  
                 console.log(this)              
-                this.$refs.suggestBox.style.bottom = '60px'
+                this.$refs.suggestBox.style.bottom = '50px'
             }
         },
         getHotKey() {
@@ -91,6 +91,7 @@ export default {
         .suggest-box
             position fixed
             overflow hidden
+            background #333
             top 195px
             bottom 0
             left 0

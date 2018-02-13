@@ -1,21 +1,25 @@
 <template>
-    <scroll  class="scroll-result"  :data="result" v-if="result.length" :pullup="pullup" @scrollToEnd="searchMore" >
-        <ul class="suggest" ref="scrollWrap">
+<div class="suggest-wrap">
+    <scroll  class="scroll-result" v-if="result.length"  :data="result"  :pullup="pullup" @scrollToEnd="searchMore" >
+        <ul class="suggest" ref="scrollWrap" >
             <li :Key="key" v-for="(item,key) in result" class="music-results" @click="selectItem(item)">
                 <i :class="getCls(item)"></i>
                 <p class="text" v-html="getName(item)"></p>
                 <!-- {{item}} -->
             </li>
-            <div class="loading" v-show="hasMoreRes"></div>
-        </ul>    
+            <div class="loading" v-show="hasMoreRes"></div>            
+        </ul>        
     </scroll>
-
+    <div v-if="!result.length && !hasMoreRes">
+        <p>没有搜索到相应结果</p>
+    </div>
+</div>        
 </template>
 
 <script>
-import {mapMutations} from 'vuex'
+import {mapMutations,mapActions} from 'vuex'
 import {searchResult} from 'api/search'
-import {Singer,filterSinger} from 'common/js/class'
+import {Singer,filterSinger,createSong} from 'common/js/class'
 import scroll from 'components/util/scroll'
 export default {
     
@@ -80,9 +84,12 @@ export default {
         },
         checkMore(data) {
             const song = data.song
-            if(!song.list.length || (song.curnum + (song.curpage-1)*20)>song.totalnum){
+            if(!song.list.length || (song.curnum + (song.curpage-1)*20)>=song.totalnum){
                 this.hasMoreRes = false
+            }else{
+                this.hasMoreRes = true
             }
+            console.log('the hasmore is'+ this.hasMoreRes)
         },
         filterData(data) {
             let ret = []
@@ -118,46 +125,56 @@ export default {
                     path: `/search/${singer.id}`                    
                 })
                 this.setSinger(singer)
+            }else{
+                const song = createSong(item)
+                console.log('yessss')
+                this.insertSong(song)
             }
         },
         ...mapMutations({
             setSinger: 'SET_SINGER'
-        }) 
+        }),
+        ...mapActions([
+            'insertSong'
+        ])
     }
 }
 </script>
 
 <style lang="stylus">
-.scroll-result
-    // position fixed
-    // overflow hidden
-    // top 195px
-    // bottom 0
-    // left 0
-    // right 0
-    // padding-bottom 10px
+.suggest-wrap
     height 100%
-    overflow hidden
-    background #333        
-    .suggest    
-        text-align left
-        font-size 0.9rem         
-        .music-results
-            height 25px
-            display flex
-            justify-content flex-start   
-            align-items center 
-            font-family  '黑体'
-            padding 5px 25px
-        i.fa
-            margin-right 10px    
-        p.text
+    width 100%
+    .scroll-result
+        // position fixed
+        // overflow hidden
+        // top 195px
+        // bottom 0
+        // left 0
+        // right 0
+        // padding-bottom 10px
+        height 100%
+        width 100%
+        overflow hidden                        
+        .suggest    
             text-align left
-            white-space nowrap
-            overflow: hidden
-            text-overflow ellipsis
-        .loading
-            transform scale(0.8)
+            font-size 0.9rem         
+            .music-results
+                height 25px
+                display flex
+                justify-content flex-start   
+                align-items center 
+                font-family  '黑体'
+                padding 5px 25px
+            i.fa
+                margin-right 10px    
+            p.text
+                text-align left
+                white-space nowrap
+                overflow: hidden
+                text-overflow ellipsis
+            .loading
+                transform scale(0.8)
 </style>
 
 

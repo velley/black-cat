@@ -7,6 +7,7 @@
 </template>
 
 <script>
+import {debounce} from 'common/js/util'
 export default {
     data() {
         return {
@@ -22,9 +23,9 @@ export default {
         }
     },
     created() {
-        this.$watch('query',(newquery)=>{
+        this.$watch('query',debounce((newquery)=>{
             this.$emit('showQuery',newquery)
-        })
+        },500))
     }
 }
 </script>
