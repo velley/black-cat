@@ -2,7 +2,7 @@
     <div class="search">
         <search-box ref="searchBox" @showQuery="getQuery"></search-box>
         <div class="suggest-box" ref="suggestBox" v-show="query">
-            <suggest :query="query" ref="suggest"></suggest>
+            <suggest :query="query" @listScroll="blurKeyboard" ref="suggest"></suggest>
         </div>
         <div class="hot-keys">
             <h3 class="hot-title">热门搜索：</h3>
@@ -61,6 +61,9 @@ export default {
             this.$refs.searchBox.setQuery(text)
             this.query = text
         },
+        blurKeyboard() {
+            this.$refs.searchBox.blur()
+        }
         
     }
 }

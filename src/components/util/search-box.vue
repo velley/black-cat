@@ -1,7 +1,7 @@
 <template>
     <div class="search-box">
         <i class="fa fa-2x fa-search box-item"></i>
-        <input class="search-text box-item" v-model="query" type="text" placeholder="请输入歌曲名称">
+        <input ref="input" class="search-text box-item" v-model="query" type="text" placeholder="请输入歌曲名称">
         <i v-show="query" class="fa fa-2x fa-times box-item" @click="cleanText"></i>
     </div>
 </template>
@@ -20,6 +20,10 @@ export default {
         },
         setQuery(text) {
             this.query = text
+        },
+        blur() {
+            this.$refs.input.blur()
+            
         }
     },
     created() {

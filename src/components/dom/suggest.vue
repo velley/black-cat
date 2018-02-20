@@ -1,6 +1,12 @@
 <template>
 <div class="suggest-wrap">
-    <scroll  class="scroll-result" v-if="result.length"  :data="result"  :pullup="pullup" @scrollToEnd="searchMore" >
+    <scroll  class="scroll-result" 
+            v-if="result.length"  
+            :data="result"  
+            :pullup="pullup" 
+            :beforeScroll="true"
+            @scrollToEnd="searchMore"
+            @beforeScroll="listScroll" >
         <ul class="suggest" ref="scrollWrap" >
             <li :Key="key" v-for="(item,key) in result" class="music-results" @click="selectItem(item)">
                 <i :class="getCls(item)"></i>
@@ -100,6 +106,9 @@ export default {
                 ret = ret.concat(data.song.list)
             }
             return ret
+        },
+        listScroll(){
+            this.$emit('listScroll')
         },
         getCls(item) {
             if(item.type === 'singer'){

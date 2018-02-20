@@ -28,6 +28,10 @@ export default {
         pullup:{
             type:Boolean,
             default:false
+        },
+        beforeScroll:{
+            type:Boolean,
+            default:false
         }
     },
     methods: {
@@ -55,6 +59,11 @@ export default {
                         // alert('s end')
                         me.$emit('scrollToEnd')
                     }
+                })
+            }
+            if(this.beforeScroll){
+                this.scroll.on('beforeScrollStart',()=>{
+                    this.$emit('beforeScroll')
                 })
             }
         },
